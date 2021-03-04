@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const debug = require('debug')('idm:i4trust_controller');
 const fetch = require('node-fetch');
 const forge = require('node-forge');
@@ -256,18 +257,21 @@ async function _validate_participant(req, res) {
     });
   }
 
+  const secret = uuid.v4();
+  const jwt_secret = crypto.randomBytes(16).toString('hex').slice(0, 16);
   await models.oauth_client.upsert({
-      id: client_payload.iss,
-      name: client_payload.iss,
-      image: 'default',
-      secret: uuid.v4(),
-      grant_type: [
-        'client_credentials',
-        'authorization_code',
-        'refresh_token'
-      ],
-      response_type: ['code'],
-      redirect_uri: client_payload.redirect_uri
+    id: client_payload.iss,
+    name: client_payload.iss,
+    image: 'default',
+    secret,
+    grant_type: [
+      'client_credentials',
+      'authorization_code',
+      'refresh_token'
+    ],
+    jwt_secret,
+    response_type: ['code'],
+    redirect_uri: client_payload.redirect_uri
   });
 
   debug('i4Trust success');
@@ -278,7 +282,10 @@ async function _validate_participant(req, res) {
   auth_params.append('redirect_uri', client_payload.redirect_uri);
   auth_params.append('state', client_payload.state);
   auth_params.append('nonce', client_payload.nonce);
-  throw res.redirect('/oauth2/authorize?' + auth_params);
+  throw res.location('/oauth2/authorize?' + auth_params).status(200).json({
+    client_secret: secret,
+    jwt_secret
+  });
 }
 
 exports.validate_participant = function validate_participant(req, res, next) {
