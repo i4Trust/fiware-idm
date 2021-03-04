@@ -39,6 +39,32 @@ function validate_client_certificate(cert) {
   }
 }
 
+async function retrieve_participant_registry_token() {
+  const now = moment();
+  const iat = now.unix();
+  const exp = now.add(30, 'seconds').unix();
+  const payload = {
+    jti: uuid.v4(),
+    iss: config.pr.client_id,
+    sub: config.pr.client_id,
+    aud: [
+        "EU.EORI.NL000000000",
+        config.pr.token_endpoint
+    ],
+    iat,
+    exp
+  };
+
+  return await jose.JWS.createSign({
+    algorithm: 'RS256',
+    format: 'compact',
+    fields: {
+      typ: "JWT",
+      x5c: config.pr.client_crt
+    }
+  }, config.pr.client_key).update(JSON.stringify(payload)).final();
+}
+
 async function _validate_participant(req, res) {
   const scopes = new Set(req.body.scope != null ? req.body.scope.split(' ') : []);
   if (!scopes.has('i4trust') && !scopes.has('iSHARE')) {
@@ -105,14 +131,25 @@ async function _validate_participant(req, res) {
       });
   }
 
-  // TODO: Step 7: Packet Delivery company Identity Provider validates the JWT
-  // and certificate of the Marketplace
-  debug('step 7');
+  // Step 7: Validate the JWT and the certificate chain provided in
+  // the header
   let client_jwt;
   let client_certificate;
+  let client_payload;
   try {
-    client_jwt = await verifier.verify(credentials, { 'allowEmbeddedKey': true});
+    debug('step 7.1');
+    client_jwt = await verifier.verify(credentials, { 'allowEmbeddedKey': true });
     debug('step 7.2');
+    client_payload = JSON.parse(client_jwt.payload.toString());
+    const aud = typeof client_payload.aud === "string" ? [client_payload.aud] : client_payload.aud;
+    if (aud == null || aud.indexOf(config.pr.client_id) === -1) {
+      throw new Error("Not listened on the aud[ience] attribute");
+    }
+    const now = moment().unix();
+    if (client_payload.exp < now) {
+      throw new Error("Expired token");
+    }
+    debug('step 7.3');
     client_certificate = forge.pki.certificateFromPem(
       '-----BEGIN CERTIFICATE-----' + client_jwt.header.x5c[0] + '-----END CERTIFICATE-----'
     );
@@ -130,34 +167,10 @@ async function _validate_participant(req, res) {
       application: req.application
     });
   }
-  debug('step 7.3');
-  const client_payload = JSON.parse(client_jwt.payload.toString());
 
   // Step 8: Packet Delivery company Identity Provider generates an iSHARE JWT
   debug('step 8');
-  const now = moment();
-  const iat = now.unix();
-  const exp = now.add(30, 'seconds').unix();
-  const payload = {
-    jti: uuid.v4(),
-    iss: config.pr.client_id,
-    sub: config.pr.client_id,
-    aud: [
-        "EU.EORI.NL000000000",
-        config.pr.token_endpoint
-    ],
-    iat,
-    exp
-  };
-
-  const token = await jose.JWS.createSign({
-      algorithm: 'RS256',
-      format: 'compact',
-      fields: {
-        typ: "JWT",
-        x5c: config.pr.client_crt
-      }
-  }, config.pr.client_key).update(JSON.stringify(payload)).final();
+  const token = await retrieve_participant_registry_token();
 
   // Step 9: Identity Provider sends a request to the participan registry
   // `/token` endpoint. The signed JWT created in step 8 is provided with the
