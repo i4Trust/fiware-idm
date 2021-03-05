@@ -438,7 +438,10 @@ function saveAuthorizationCode(code, client, user) {
       authorization_code: code.authorizationCode,
       valid: true,
       user_id: user.id,
-      scope: code.scope
+      scope: code.scope,
+      extra: {
+        iat: new Date()
+      }
     })
     .then(function () {
       code.code = code.authorizationCode;
@@ -830,7 +833,7 @@ function validateScope(user, client, scope) {
   debug('-------validateScope-------');
 
   if (scope && scope.length > 0) {
-    const requested_scopes = typeof scope === "string" ? scope.split(',') : scope[0].split(',');
+    const requested_scopes = (typeof scope === "string" ? scope : scope[0]).split(/[,\s]+/);
     if (requested_scopes.includes('bearer') && requested_scopes.includes('jwt')) {
       return false;
     }
