@@ -120,6 +120,13 @@ exports.show = function (req, res, next) {
         });
       }
 
+      // Manage users with invalid extra data
+      if (req.user.extra == null) {
+          req.user.extra = {};
+      }
+      if (req.user.extra.visible_attributes == null) {
+          req.user.extra.visible_attributes = [];
+      }
       res.render('users/show', {
         user: req.user,
         applications,
@@ -229,6 +236,14 @@ exports.edit = function (req, res) {
     req.user.image = '/img/logos/original/user.png';
   } else {
     req.user.image = '/img/users/' + req.user.image;
+  }
+
+  // Manage users with invalid extra data
+  if (req.user.extra == null) {
+      req.user.extra = {};
+  }
+  if (req.user.extra.visible_attributes == null) {
+      req.user.extra.visible_attributes = [];
   }
 
   if (!req.user.gravatar) {
