@@ -291,7 +291,7 @@ async function _validate_participant(req, res) {
   await models.oauth_client.upsert({
     id: client_payload.iss,
     name: parties_info.data[0].party_name,
-    image: 'default',
+    image: 'i4trust_party.png',
     //secret,
     grant_type: [
       'client_credentials',
