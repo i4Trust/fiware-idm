@@ -99,8 +99,14 @@ database.connect(config, err =>{
     }
   }
 
+  let http_options = {}
+  if (config.server.max_header_size) {
+    http_options.maxHeaderSize = config.server.max_header_size;
+    options.maxHeaderSize = config.server.max_header_size;
+  }
+
   const app = require('../app');
-  server = http.createServer(app); 
+  server = http.createServer(http_options, app); 
 
   /**
   * Get port from environment and store in Express.
