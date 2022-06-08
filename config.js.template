@@ -14,11 +14,6 @@ config.https = {
   port: 443
 };
 
-// HTTP server
-//config.server = {
-//  max_header_size: undefined
-//}
-
 // Config email list type to use domain filtering
 config.email_list_type = null; // whitelist or blacklist
 
