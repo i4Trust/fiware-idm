@@ -84,7 +84,7 @@ const retrieve_participant_registry_token = async function retrieve_participant_
     iss: config.pr.client_id,
     sub: config.pr.client_id,
     aud: [
-        "EU.EORI.NL000000000",
+        config.pr.id,
         config.pr.token_endpoint
     ],
     iat,
