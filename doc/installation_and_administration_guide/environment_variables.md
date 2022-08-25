@@ -11,6 +11,7 @@ ease Keyrock configuration.
 | IDM_EMAIL_LIST                      | String  | Type of list to be used to filter domain                                                                        | null,whitelist,blacklist    |
 | IDM_HTTPS_ENABLED                   | Boolean | Enable Keyrock to listen on HTTPS                                                                               | true,false                  |
 | IDM_HTTPS_PORT                      | Integer | Port where IdM Keyrock will listen if HTTPS is enable                                                           | 0 to 65536                  |
+| IDM_SERVER_MAX_HEADER_SIZE          | Integer | Maximum length of request headers in bytes                                                                      | -                            |
 | IDM_SESSION_SECRET                  | String  | Value to encrypt user info in express sessions                                                                  | -                           |
 | IDM_SESSION_DURATION                | Integer | Lifetime of user session                                                                                        | -                           |
 | IDM_ENCRYPTION_KEY                  | String  | Value used to encrypt passwords in DB if salt is not use                                                        | -                           |
@@ -43,7 +44,7 @@ ease Keyrock configuration.
 | IDM_DB_DIALECT                      | String  | SQL Dialect of the database                                                                                     | mysql,sqlite,postgres,mssql |
 | IDM_DB_PORT                         | Integer | Port where Database is running                                                                                  | 0 to 65536                  |
 | IDM_DB_SEED                         | Boolean | Whether to seed the database with data                                                                          | true,false                  |
-| IDM_DB_MIGRATE                      | Boolean | Whether to migrate the database to a later version data                                                                          | true,false                  |
+| IDM_DB_MIGRATE                      | Boolean | Whether to migrate the database to a later version data                                                         | true,false                  |
 | IDM_EX_AUTH_ENABLED                 | Boolean | Enable use of an external user table to authenticate users                                                      | true,false                  |
 | IDM_EX_AUTH_ID_PREFIX               | String  | Prefix to be add to ID in Keyrock user table when a external user logs in                                       | -                           |
 | IDM_EX_AUTH_PASSWORD_ENCRYPTION     | String  | Algorithm used to encrypt passwords in external user table                                                      | -                           |
